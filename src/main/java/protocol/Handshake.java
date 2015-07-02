@@ -5,14 +5,14 @@ import java.util.ArrayList;
 public class Handshake extends Packet {
     public long   protocolVersion = 0x0a;
     public String serverVersion = "5.6.22-71.0-log";
-    public long   connectionId = 0;
-    public String challenge1 = "dfeddeed";
-    public long   capabilityFlags = Flags.CLIENT_PROTOCOL_41;
-    public long   characterSet = 0;
+    public long   connectionId = 1;
+    public String challenge1 = "qNpjDROu";
+    public long   capabilityFlags = 0xf7ff; // Flags.CLIENT_PROTOCOL_41;
+    public long   characterSet = 8;
     public long   statusFlags = 0;
-    public String challenge2 = "";
+    public String challenge2 = "!BeYo@3|8C(;";
     public long   authPluginDataLength = 0;
-    public String authPluginName = "dfeddeedawef";
+    public String authPluginName = "";
 
     public void setCapabilityFlag(long flag) {
         this.capabilityFlags |= flag;

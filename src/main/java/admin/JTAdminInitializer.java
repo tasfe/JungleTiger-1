@@ -19,12 +19,12 @@ public class JTAdminInitializer extends ChannelInitializer<SocketChannel>
     public void initChannel(SocketChannel ch) 
     {
         ChannelPipeline p = ch.pipeline();
-        // p.addLast(new LengthFieldBasedFrameDecoder(65535, 0, 2, 0, 2));
+        // p.addLast(new LengthFieldBasedFrameDecoder(0xFFFFFF, 0, 3, 0, 3));
         // p.addLast(new ByteArrayDecoder());
         // p.addLast(new LengthFieldPrepender(2));
         // p.addLast(new ByteArrayEncoder());
-        // p.addLast(new LineBasedFrameDecoder(1024));
-        // p.addLast(new StringDecoder());
+        p.addLast("decoder", new ByteArrayDecoder());
+        p.addLast("encoder", new ByteArrayEncoder());
         p.addLast(new JTAdminHandler());
     }
 }

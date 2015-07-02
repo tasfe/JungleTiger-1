@@ -20,11 +20,18 @@ public class JTAdminHandler extends ChannelInboundHandlerAdapter
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception 
+    public void channelActive(final ChannelHandlerContext ctx) throws Exception 
     {
         logger.info(ctx.channel().remoteAddress().toString() + " is connected");
         Handshake hspacket = new Handshake();
-        ctx.write(hspacket.toPacket());
+        final ChannelFuture f = ctx.writeAndFlush(hspacket.toPacket());
+        hspacket.dump_stderr(hspacket.toPacket());
+        f.addListener(new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture future) {
+                assert f == future;
+            }
+        });
     }
     
     @Override
@@ -36,6 +43,11 @@ public class JTAdminHandler extends ChannelInboundHandlerAdapter
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException
     {
+        Packet.dump_stderr((byte[])msg);
+        OK okpacket = new OK();
+        okpacket.sequenceId = 2;
+        Packet.dump_stderr(okpacket.toPacket());
+        ctx.write(okpacket.toPacket());
     }
 
     @Override
