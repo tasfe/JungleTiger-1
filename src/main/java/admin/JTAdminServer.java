@@ -14,7 +14,12 @@ import org.json.*;
 public final class JTAdminServer
 {
     private Logger logger = LoggerFactory.getLogger(JTAdminServer.class);
+    private ArrayBlockingQueue mq;
     private JSONObject json;
+
+    // [TODO] there can be only one admin thread now
+    //        may be able to execute admin task concurrently in the future 
+    private static final int admin_workers = 1;
 
     public JTAdminServer(JSONObject json) {
         this.json = json;
@@ -23,6 +28,18 @@ public final class JTAdminServer
     public void run() throws Exception
     {
         logger.info(">>>> jungletiger admin server run ...");
+
+        // create message queue. 
+        ArrayBlockingQueue mq = new ArrayBlockingQueue(admin_workers, true);
+
+        // create worker thread pool
+        ExecutorService executor = Executors.newFixedThreadPool(admin_workers);
+
+        for (int i = 0; i < admin_workers; i++) 
+        {
+            // Runnable worker = new JAdminTWorker(dsn, mq);
+            // executor.execute(worker);
+        }
 
         // Configure the server.
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
@@ -34,7 +51,7 @@ public final class JTAdminServer
             b.group(bossGroup, workerGroup);
             b.channel(NioServerSocketChannel.class);
             b.handler(new LoggingHandler(LogLevel.INFO));
-            b.childHandler(new JTAdminInitializer());
+            b.childHandler(new JTAdminInitializer(mq));
 
             Channel ch = b.bind(json.getInt("port")).sync().channel();
             ch.closeFuture().sync();

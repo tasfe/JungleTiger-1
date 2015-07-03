@@ -10,20 +10,33 @@ import org.slf4j.*;
 
 public class JTAdminHandler extends ChannelInboundHandlerAdapter 
 {
-    private Logger logger;
+    private ArrayBlockingQueue mq;
     private Connection conn;
     private Statement stmt;
+    private Logger logger;
 
-    public JTAdminHandler()
+    public JTAdminHandler(ArrayBlockingQueue mq)
     {
-        logger = LoggerFactory.getLogger(JTAdminHandler.class);
+        this.logger = LoggerFactory.getLogger(JTAdminHandler.class);
+        this.mq = mq;
     }
 
     @Override
     public void channelActive(final ChannelHandlerContext ctx) throws Exception 
     {
         logger.info(ctx.channel().remoteAddress().toString() + " is connected");
+
         Handshake hspacket = new Handshake();
+        hspacket.serverVersion = "5.6.22-71.0-log";
+        hspacket.connectionId = 1;
+        hspacket.challenge1 = "qNpjDROu";
+        hspacket.capabilityFlags = Flags.CLIENT_PROTOCOL_41;
+        hspacket.characterSet = 8;
+        hspacket.statusFlags = 0;
+        hspacket.challenge2 = "!BeYo@3|8C(;";
+        hspacket.authPluginDataLength = 0;
+        hspacket.authPluginName = "";
+
         final ChannelFuture f = ctx.writeAndFlush(hspacket.toPacket());
         hspacket.dump_stderr(hspacket.toPacket());
         f.addListener(new ChannelFutureListener() {

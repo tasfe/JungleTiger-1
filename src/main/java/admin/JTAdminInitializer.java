@@ -6,13 +6,14 @@ import io.netty.handler.codec.bytes.*;
 import io.netty.handler.codec.*;
 import io.netty.channel.socket.*;
 import io.netty.channel.*;
-import io.netty.util.concurrent.*;
-
 
 public class JTAdminInitializer extends ChannelInitializer<SocketChannel> 
 {
-    public JTAdminInitializer()
+    private ArrayBlockingQueue mq;
+
+    public JTAdminInitializer(ArrayBlockingQueue mq)
     {
+        this.mq = mq;
     }
 
     @Override
@@ -21,10 +22,10 @@ public class JTAdminInitializer extends ChannelInitializer<SocketChannel>
         ChannelPipeline p = ch.pipeline();
         // p.addLast(new LengthFieldBasedFrameDecoder(0xFFFFFF, 0, 3, 0, 3));
         // p.addLast(new ByteArrayDecoder());
-        // p.addLast(new LengthFieldPrepender(2));
+        // p.addLast(new LengthFieldPrepender(3));
         // p.addLast(new ByteArrayEncoder());
         p.addLast("decoder", new ByteArrayDecoder());
         p.addLast("encoder", new ByteArrayEncoder());
-        p.addLast(new JTAdminHandler());
+        p.addLast(new JTAdminHandler(mq));
     }
 }
