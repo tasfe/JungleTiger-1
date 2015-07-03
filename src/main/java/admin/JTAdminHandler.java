@@ -56,11 +56,19 @@ public class JTAdminHandler extends ChannelInboundHandlerAdapter
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException
     {
-        Packet.dump_stderr((byte[])msg);
-        OK okpacket = new OK();
-        okpacket.sequenceId = 2;
-        Packet.dump_stderr(okpacket.toPacket());
-        ctx.write(okpacket.toPacket());
+        logger.info("get message");
+        try {
+            JTMySQLProtocolMessage mpmsg = new JTMySQLProtocolMessage();
+            mpmsg.message = (byte[])msg;
+            mpmsg.ctx = ctx;
+            mq.put(mpmsg);
+        } catch (InterruptedException ie) {
+            logger.error("channelRead failed, err: %s", ie.getMessage());
+            /*
+            ByteBuf rep = Unpooled.copiedBuffer(ie.getMessage().getBytes());
+            ctx.write(rep);
+            */
+        }
     }
 
     @Override

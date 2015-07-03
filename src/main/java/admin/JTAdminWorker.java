@@ -1,7 +1,9 @@
 package com.alex.jungletiger.admin;
 
+import com.alex.jungletiger.protocol.*;
 import java.util.concurrent.*;
 import java.sql.*;
+import io.netty.channel.*;
 import io.netty.buffer.*;
 import org.slf4j.*;
 
@@ -21,7 +23,29 @@ public class JTAdminWorker implements Runnable
     @Override
     public void run()
     {
-        /*
+        try
+        {
+            while (true) {
+                JTMySQLProtocolMessage mpmsg = (JTMySQLProtocolMessage)mq.take();
+                OK okpacket = new OK();
+                okpacket.sequenceId = mpmsg.message[3]+1;
+                mpmsg.ctx.writeAndFlush(okpacket.toPacket());
+            }
+        }
+        catch (InterruptedException ie)
+        {
+            logger.error("get message failed: " + ie.getMessage());
+        }
+        catch (Exception e)
+        {
+             e.printStackTrace();
+        }
+    }
+
+    /*
+    @Override
+    public void run()
+    {
         java.sql.Connection conn = null;
         java.sql.Statement stmt = null;
         try
@@ -63,6 +87,6 @@ public class JTAdminWorker implements Runnable
                 catch(SQLException e) {e.printStackTrace();}
             }
         }
-        */
     }
+    */
 }

@@ -30,15 +30,15 @@ public final class JTAdminServer
         logger.info(">>>> jungletiger admin server run ...");
 
         // create message queue. 
-        ArrayBlockingQueue mq = new ArrayBlockingQueue(admin_workers, true);
+        ArrayBlockingQueue mq = new ArrayBlockingQueue(admin_workers+10, true);
 
         // create worker thread pool
         ExecutorService executor = Executors.newFixedThreadPool(admin_workers);
 
         for (int i = 0; i < admin_workers; i++) 
         {
-            // Runnable worker = new JAdminTWorker(dsn, mq);
-            // executor.execute(worker);
+            Runnable worker = new JTAdminWorker("", mq);
+            executor.execute(worker);
         }
 
         // Configure the server.
