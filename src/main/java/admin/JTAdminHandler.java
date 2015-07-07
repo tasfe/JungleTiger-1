@@ -38,7 +38,7 @@ public class JTAdminHandler extends ChannelInboundHandlerAdapter
         hspacket.authPluginName = "";
 
         final ChannelFuture f = ctx.writeAndFlush(hspacket.toPacket());
-        hspacket.dump_stderr(hspacket.toPacket());
+        // hspacket.dump_stderr(hspacket.toPacket());
         f.addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) {
@@ -56,7 +56,7 @@ public class JTAdminHandler extends ChannelInboundHandlerAdapter
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException
     {
-        logger.info("get message");
+        logger.debug("get message");
         try {
             JTMySQLProtocolMessage mpmsg = new JTMySQLProtocolMessage();
             mpmsg.message = (byte[])msg;

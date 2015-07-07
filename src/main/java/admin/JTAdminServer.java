@@ -11,8 +11,7 @@ import io.netty.buffer.*;
 import org.slf4j.*;
 import org.json.*;
 
-public final class JTAdminServer
-{
+public final class JTAdminServer {
     private Logger logger = LoggerFactory.getLogger(JTAdminServer.class);
     private ArrayBlockingQueue mq;
     private JSONObject json;
@@ -25,8 +24,7 @@ public final class JTAdminServer
         this.json = json;
     }
 
-    public void run() throws Exception
-    {
+    public void run() throws Exception {
         logger.info(">>>> jungletiger admin server run ...");
 
         // create message queue. 
@@ -37,15 +35,16 @@ public final class JTAdminServer
 
         for (int i = 0; i < admin_workers; i++) 
         {
-            Runnable worker = new JTAdminWorker("", mq);
+            String dsn = json.getJSONObject("meta_server").getString("dsn");
+            JTAdminWorker worker = new JTAdminWorker(dsn, mq);
+            worker.init();
             executor.execute(worker);
         }
 
         // Configure the server.
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup(1);
-        try 
-        {
+        try {
             ServerBootstrap b = new ServerBootstrap();
             b.option(ChannelOption.SO_BACKLOG, 1024);
             b.group(bossGroup, workerGroup);
@@ -55,9 +54,7 @@ public final class JTAdminServer
 
             Channel ch = b.bind(json.getInt("port")).sync().channel();
             ch.closeFuture().sync();
-        }
-        finally 
-        {
+        } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
