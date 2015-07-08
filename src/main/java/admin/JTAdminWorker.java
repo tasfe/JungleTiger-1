@@ -1,10 +1,13 @@
 package com.alex.jungletiger.admin;
 
+import com.alex.jungletiger.sqlparser.*;
 import com.alex.jungletiger.protocol.*;
 import java.util.concurrent.*;
 import java.sql.*;
 import io.netty.channel.*;
 import io.netty.buffer.*;
+import org.antlr.v4.runtime.tree.*;
+import org.antlr.v4.runtime.*;
 import org.slf4j.*;
 
 public class JTAdminWorker implements Runnable 
@@ -55,7 +58,7 @@ public class JTAdminWorker implements Runnable
                 JTMySQLProtocolMessage mpmsg = (JTMySQLProtocolMessage)mq.take();
                 Packet.dump_stderr(mpmsg.message);
                 
-                if (mpmsg.message[4] == 0x03) {
+                if (mpmsg.message[4] == 0x03 && mpmsg.message[5] != 's') {
                     handleQuery(mpmsg);
                 } else {
                     OK okpacket = new OK();
@@ -70,6 +73,39 @@ public class JTAdminWorker implements Runnable
         }
     }
 
+    private void handleQuery(JTMySQLProtocolMessage mpmsg) {
+        String command = new String(mpmsg.message, 5, mpmsg.message.length-5);
+        int seq_id = mpmsg.message[3]+1;
+        logger.debug("handle COM_QUERY: " + command);
+
+        ANTLRInputStream input = new ANTLRInputStream(command);
+        SQLParserLexer lexer = new SQLParserLexer(input);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        SQLParserParser parser = new SQLParserParser(tokens);
+        ParseTree tree = parser.statment();
+        // create a standard ANTLR parse tree walker
+        ParseTreeWalker walker = new ParseTreeWalker();
+        // create listener then feed to walker
+        SQLParserLoader loader = new SQLParserLoader();
+
+        // walk parse tree
+        walker.walk(loader, tree);
+        if (loader.ss.type == SQLType.ADD_NODE) {
+            handleSQLAddNode(loader.ss.sql_add_node, seq_id, mpmsg.ctx);
+        } else if (loader.ss.type == SQLType.CREATE_TABLE) {
+            // TODO
+        } else {
+            // TODO
+        }
+    }
+
+    private void handleSQLAddNode(SQLAddNode sql_add_node, int seq_id, ChannelHandlerContext ctx) {
+        logger.debug("handle ADD_NODE ...");
+        OK okpacket = new OK();
+        okpacket.sequenceId = seq_id;
+        ctx.writeAndFlush(okpacket.toPacket());
+    }
+    /*
     private void handleQuery(JTMySQLProtocolMessage mpmsg) {
         logger.debug("handle COM_QUERY...");
 
@@ -93,4 +129,5 @@ public class JTAdminWorker implements Runnable
             mpmsg.ctx.writeAndFlush(buf);
         }
     }
+    */
 }

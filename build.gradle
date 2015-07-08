@@ -1,5 +1,41 @@
 apply plugin: 'java'
 
+// --> begin of antlr4 install
+buildscript {
+    repositories {
+        mavenLocal()
+        maven {
+            name 'JFrog OSS snapshot repo'
+            url  'https://oss.jfrog.org/oss-snapshot-local/'
+        }
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'me.champeau.gradle:antlr4-gradle-plugin:0.1'
+    }
+}
+
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+apply plugin: 'me.champeau.gradle.antlr4'
+// <-- end of antlr4 install
+
+// make the Java compile task depend on the antlr4 task
+compileJava.dependsOn antlr4
+
+// add the generated source files to the list of java sources
+antlr4.output = file("src/main/java/sqlparser/gen")
+antlr4.visitor = false
+
+// add antlr4 to classpath
+configurations {
+    compile.extendsFrom antlr4
+}
+
 repositories {
     mavenLocal()
     mavenCentral()
@@ -27,4 +63,9 @@ dependencies {
     compile 'commons-codec:commons-codec:1.10'
     compile 'commons-io:commons-io:2.4'
     runtime 'mysql:mysql-connector-java:5.1.6'
+}
+
+// delete antlr4 generated files
+clean {
+    delete "src/main/java/sqlparser/gen"
 }
